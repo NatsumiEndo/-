@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
+import itertools
 
 st.title("数値計算アプリ")
 
@@ -203,12 +204,56 @@ def split_list(lst, n):
     return [lst[i:i+n] for i in range(0, len(lst), n)]
     
 # 入力
-f1 = st.number_input("Aの値", value=0)
-f2 = st.number_input("Bの値", value=0)
-f3 = st.number_input("Cの値", value=1)
+f1 = st.number_input("Aの値", value=39)
+f2 = st.number_input("Bの値", value=43)
+f3 = st.number_input("Cの値", value=46)
 v1 = st.number_input("v1の値", value=1)
 v2 = st.number_input("v2の値", value=1)
 v3 = st.number_input("v3の値", value=1)
+
+def round_tuple(t, ndigits=3):
+    return tuple(sorted([round(x, ndigits) for x in t]))  # 組合せのキーに使う
+
+for lam in range(11):
+    I_num = I_2
+    S_num = S_1
+    v_com_all_unique = []
+
+    # 音量比の順列全体を収集
+    for item in v_com_a:
+        perms = list(itertools.permutations(item))
+        unique_perms = list(set(tuple(p) for p in perms))
+        for unique_p in unique_perms:
+            v_com_all_unique.append([p / 10 for p in unique_p])  # 10で割る
+
+    # 組合せごとの結果リスト
+    grouped_results = {}
+
+    for v_comb in v_com_all_unique:
+        Da = D(f1,f2,f3,v_comb[0],v_comb[1],v_comb[2],N,a,b,c,d,g)
+        Ta = TM(f1,f2,f3,v_comb[0],v_comb[1],v_comb[2],N,e,h,g)[0]
+        Ma = TM(f1,f2,f3,v_comb[0],v_comb[1],v_comb[2],N,e,h,g)[1]
+        Ia = I_num(Da, Ta, lam)
+        Sa = S_num(Da, Ta, Ma)
+
+        # 組み合わせキー（順番は問わず、同じ構成でまとめる）
+        comb_key = round_tuple(v_comb)  # e.g. (0.1, 0.1, 0.8)
+
+        if comb_key not in grouped_results:
+            grouped_results[comb_key] = []
+
+        grouped_results[comb_key].append([
+            lam, v_comb[0], v_comb[1], v_comb[2], Da, Ta, Ma, Ia, Sa
+        ])
+
+    # 出力（各組み合わせごとに I 昇順で表示）
+    for comb_key, rows in grouped_results.items():
+        # I 昇順でソート
+        sorted_rows = sorted(rows, key=lambda x: x[7])  # x[7] = I
+        df = pd.DataFrame(sorted_rows, columns=['lam', 'v1', 'v2', 'v3', 'D', 'T', 'M', 'I', 'S'])
+
+     #   print(f"\n--- lam={lam}, 音量比の組み合わせ={comb_key} ---")
+     #   print(df)
 
 # 実行ボタン
 if st.button("計算する"):
