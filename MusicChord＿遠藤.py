@@ -12,5 +12,5 @@ v3 = st.number_input("v3の値", value=1)
 
 # 実行ボタン
 if st.button("計算する"):
-    result = (a + b) * c
+    result = (f1 + f2) * f3 + v1
     st.success(f"結果: {result}")
